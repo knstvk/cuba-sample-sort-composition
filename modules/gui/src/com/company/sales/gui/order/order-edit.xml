@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!--
+  ~ Copyright (c) 2016 Haulmont
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<window xmlns="http://schemas.haulmont.com/cuba/window.xsd"
+        caption="msg://editCaption"
+        class="com.company.sales.gui.order.OrderEdit"
+        datasource="orderDs"
+        focusComponent="fieldGroup"
+        messagesPack="com.company.sales.gui.order">
+    <dsContext>
+        <datasource id="orderDs"
+                    class="com.company.sales.entity.Order"
+                    view="order-edit">
+            <collectionDatasource id="linesDs"
+                                  property="lines"/>
+        </datasource>
+    </dsContext>
+    <layout expand="windowActions"
+            spacing="true">
+        <fieldGroup id="fieldGroup"
+                    datasource="orderDs">
+            <column width="250px">
+                <field id="date"/>
+                <field id="amount"
+                       editable="false"/>
+                <field id="customer"/>
+            </column>
+        </fieldGroup>
+        <groupBox id="linesBox"
+                  caption="msg://com.company.sales.entity/Order.lines">
+            <table id="linesTable"
+                   height="200px"
+                   sortable="false"
+                   width="100%">
+                <actions>
+                    <action id="create"/>
+                    <action id="edit"/>
+                    <action id="remove"/>
+                </actions>
+                <columns>
+                    <column id="entryNum"/>
+                    <column id="quantity"/>
+                    <column id="product.name"/>
+                    <column id="product.price"/>
+                </columns>
+                <rows datasource="linesDs"/>
+                <buttonsPanel>
+                    <button action="linesTable.create"/>
+                    <button action="linesTable.edit"/>
+                    <button action="linesTable.remove"/>
+                </buttonsPanel>
+            </table>
+        </groupBox>
+        <frame id="windowActions"
+               screen="editWindowActions"
+               stylename="window-actions"/>
+    </layout>
+</window>
