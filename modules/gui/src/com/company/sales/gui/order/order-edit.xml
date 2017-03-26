@@ -61,6 +61,10 @@
                     <button action="linesTable.create"/>
                     <button action="linesTable.edit"/>
                     <button action="linesTable.remove"/>
+                    <button icon="icons/up.png"
+                            invoke="moveUp"/>
+                    <button icon="icons/down.png"
+                            invoke="moveDown"/>
                 </buttonsPanel>
             </table>
         </groupBox>

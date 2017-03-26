@@ -1,18 +1,3 @@
-/*
- * Copyright (c) 2016 Haulmont
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.company.sales.gui.order;
 
 import com.company.sales.entity.Order;
@@ -29,6 +14,8 @@ import com.haulmont.cuba.gui.data.CollectionDatasource;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.UUID;
@@ -56,17 +43,14 @@ public class OrderEdit extends AbstractEditor<Order> {
     @Override
     protected void postInit() {
         // sort and init next number on screen opening
-        sortLines();
         initNextEntryNum();
 
         // sort and init next number after each addition or deletion
         linesTableCreate.setAfterCommitHandler(entity -> {
-            sortLines();
             initNextEntryNum();
         });
         linesTableRemove.setAfterRemoveHandler(removedItems -> {
             fixEntryNumbers();
-            sortLines();
             initNextEntryNum();
         });
     }
@@ -76,11 +60,7 @@ public class OrderEdit extends AbstractEditor<Order> {
         for (OrderLine line : linesDs.getItems()) {
             amount = amount.add(line.getProduct().getPrice().multiply(line.getQuantity()));
         }
-        getItem().setAmount(amount);
-    }
-
-    private void sortLines() {
-        linesTable.sortBy(linesDs.getMetaClass().getPropertyPath("entryNum"), true);
+        getItem().setAmount(amount.setScale(2, RoundingMode.HALF_UP));
     }
 
     private void initNextEntryNum() {
@@ -96,5 +76,57 @@ public class OrderEdit extends AbstractEditor<Order> {
         for (OrderLine orderLine : linesDs.getItems()) {
             orderLine.setEntryNum(num++);
         }
+    }
+
+    public void moveUp() {
+        OrderLine selectedLine = linesTable.getSingleSelected();
+        if (selectedLine == null)
+            return;
+        int i = getItem().getLines().indexOf(selectedLine);
+        if (i == 0)
+            return;
+        // create a temporary copy of the collection
+        ArrayList<OrderLine> lines = new ArrayList<>(getItem().getLines());
+        // modify entryNum attributes
+        Integer num = selectedLine.getEntryNum();
+        selectedLine.setEntryNum(num - 1);
+        lines.get(i - 1).setEntryNum(num);
+        // sort copy according to the new order
+        lines.sort(Comparator.comparingInt(OrderLine::getEntryNum));
+        // refill the datasource
+        for (OrderLine line : lines) {
+            linesDs.excludeItem(line);
+        }
+        for (OrderLine line : lines) {
+            linesDs.includeItem(line);
+        }
+        // select the same item
+        linesTable.setSelected(selectedLine);
+    }
+
+    public void moveDown() {
+        OrderLine selectedLine = linesTable.getSingleSelected();
+        if (selectedLine == null)
+            return;
+        int i = getItem().getLines().indexOf(selectedLine);
+        if (i == getItem().getLines().size() - 1)
+            return;
+        // create a temporary copy of the collection
+        ArrayList<OrderLine> lines = new ArrayList<>(getItem().getLines());
+        // modify entryNum attributes
+        Integer num = selectedLine.getEntryNum();
+        selectedLine.setEntryNum(num + 1);
+        lines.get(i + 1).setEntryNum(num);
+        // sort copy according to the new order
+        lines.sort(Comparator.comparingInt(OrderLine::getEntryNum));
+        // refill the datasource
+        for (OrderLine line : lines) {
+            linesDs.excludeItem(line);
+        }
+        for (OrderLine line : lines) {
+            linesDs.includeItem(line);
+        }
+        // select the same item
+        linesTable.setSelected(selectedLine);
     }
 }
