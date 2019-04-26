@@ -1,69 +1,50 @@
-/*
- * Copyright (c) 2016 Haulmont
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.company.sales.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
+
+import com.haulmont.cuba.core.entity.annotation.Lookup;
+import com.haulmont.cuba.core.entity.annotation.LookupType;
 import java.math.BigDecimal;
 import java.util.Date;
-import javax.persistence.Column;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+
 import com.haulmont.cuba.core.entity.StandardEntity;
+import com.haulmont.chile.core.annotations.NamePattern;
 import com.haulmont.chile.core.annotations.Composition;
 import com.haulmont.cuba.core.entity.annotation.OnDelete;
 import com.haulmont.cuba.core.global.DeletePolicy;
-import java.util.Set;
-import javax.persistence.OneToMany;
 import java.util.List;
-import javax.persistence.OrderBy;
 
+@NamePattern("%s %s|date,customer")
 @Table(name = "SALES_ORDER")
-@Entity(name = "sales$Order")
+@Entity(name = "sales_Order")
 public class Order extends StandardEntity {
-    private static final long serialVersionUID = -1832569956089722915L;
+    private static final long serialVersionUID = 5602880376063487368L;
 
-    @Temporal(TemporalType.TIMESTAMP)
+    @Temporal(TemporalType.DATE)
     @Column(name = "DATE_", nullable = false)
     protected Date date;
+
+    @Composition
+    @OnDelete(DeletePolicy.CASCADE)
+    @OneToMany(mappedBy = "order")
+    @OrderBy("entryNum")
+    protected List<OrderLine> lines;
 
     @Column(name = "AMOUNT")
     protected BigDecimal amount;
 
+    @Lookup(type = LookupType.DROPDOWN, actions = {"lookup", "open"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CUSTOMER_ID")
     protected Customer customer;
-
-    @OrderBy("entryNum")
-    @Composition
-    @OnDelete(DeletePolicy.CASCADE)
-    @OneToMany(mappedBy = "order")
-    protected List<OrderLine> lines;
-
-    public List<OrderLine> getLines() {
-        return lines;
-    }
 
     public void setLines(List<OrderLine> lines) {
         this.lines = lines;
     }
 
+    public List<OrderLine> getLines() {
+        return lines;
+    }
 
 
     public void setDate(Date date) {
